@@ -6,6 +6,7 @@ import pandas as pd
 import datetime as dt
 import numpy as np
 from datetime import timedelta
+import glob
 
 def timeadj(p_period_csv, p_wmdata_pass, p_pcdata_pass, p_timesep):
     siteperiod_csv = pd.read_csv(p_period_csv, sep=',')
@@ -36,8 +37,28 @@ def timeadj(p_period_csv, p_wmdata_pass, p_pcdata_pass, p_timesep):
                 # StartとEndから作った一連の時刻の列と、それと同じ行数を持つ空の値を持つ列（データ挿入用）を持つデータフレーム（pd.DataFrame）を作る
                 colname = 'PC' + str(iIDNo) +'_' + str(iHeight)
                 sumajdata = pd.DataFrame({'Time': timelist})
-                sumajdata[colname] = np.nan
-                datafd = p_pcdata_pass
+                # sumajdata[colname] = np.nan
+
+                # データファイルの一覧リスト取得
+                datafd = os.path.join(p_pcdata_pass, '*.csv')
+                dataflst = glob.glob(datafd)
+
+                # データファイルごとに処理
+                for iDataf in range(len(dataflst)):
+                    # 　条件に該当するデータファイルを取得
+                    Dataf_day = os.path.basename(dataflst[iDataf])
+                    Dataf_day = Dataf_day.replace('.csv', '')
+                    Dataf_day = pd.to_datetime(Dataf_day, format='%y%m%d')
+                    if timecomp(iStart, Dataf_day, "day", "<=") and timecomp(Dataf_day, iEnd, "day", "<="):
+                        tmpPC_csv = pd.read_csv(dataflst[iDataf], sep=',')
+                        tmpPC_csv = tmpPC_csv.rename(columns={tmpPC_csv.columns[0]: 'Time'})
+                        tmpPC_csv["Time"] = pd.to_datetime(tmpPC_csv["Time"], format=r'%Y/%m/%d %H:%M')
+                        # 秒が消えてないか判定
+                        # 時系列とその時の該当iIDNoのデータを切り出して、sumajdataにマージ
+                        if "LR5061-" + str(iIDNo) in list(tmpPC_csv.columns):
+                            tmpPC_csv=tmpPC_csv.loc[:,[tmpPC_csv.columns[0],"LR5061-" + str(iIDNo)]]
+                            sumajdata = pd.merge(sumajdata, tmpPC_csv, left_on='Time', right_on=tmpPC_csv.columns[0], how='left')
+                            sumajdata = sumajdata.rename(columns={"LR5061-" + str(iIDNo): colname})
             elif iType == 'WM':
                 colname = ['WS' + '_' + str(iHeight),'WD' + '_' + str(iHeight)]
                 sumajdata = pd.DataFrame({'Time': timelist})
@@ -48,7 +69,7 @@ def timeadj(p_period_csv, p_wmdata_pass, p_pcdata_pass, p_timesep):
         except Exception as err:
             print('ERROR: ' + str(err))
 
-
+        
         # 開くべきデータファイルの一覧を取得する
         # データファイルを一つずつ開く
         # データファイル2行目について、データフレームの時刻列に存在するか確認する
@@ -68,3 +89,62 @@ def timeadj(p_period_csv, p_wmdata_pass, p_pcdata_pass, p_timesep):
         # 出力データ： (csvファイル in .\timeadj)
         timeadj.timeadj(iSiteID, iIDNo, iType, iHeight, iStart, iEnd, wmdata_pass, \
             pcdata_pass, timesep)
+
+def timecomp(time1, time2, revel="second", comptype="=="):
+    revlist = ["year", "month", "day", "hour", "minute", "second"]
+    if comptype == "==":
+        ysame = time1.year == time2.year
+        msame = time1.month == time2.month
+        dsame = time1.day== time2.day
+        hsame = time1.hour == time2.hour
+        misame = time1.minute == time2.minute
+        ssame = time1.second == time2.second
+    elif comptype == ">=":
+        ysame = time1.year >= time2.year
+        msame = time1.month >= time2.month
+        dsame = time1.day>= time2.day
+        hsame = time1.hour >= time2.hour
+        misame = time1.minute >= time2.minute
+        ssame = time1.second >= time2.second
+    elif comptype == "<=":
+        ysame = time1.year <= time2.year
+        msame = time1.month <= time2.month
+        dsame = time1.day<= time2.day
+        hsame = time1.hour <= time2.hour
+        misame = time1.minute <= time2.minute
+        ssame = time1.second <= time2.second
+    elif comptype == "<":
+        ysame = time1.year < time2.year
+        msame = time1.month < time2.month
+        dsame = time1.day< time2.day
+        hsame = time1.hour < time2.hour
+        misame = time1.minute < time2.minute
+        ssame = time1.second < time2.second
+    elif comptype == ">":
+        ysame = time1.year > time2.year
+        msame = time1.month > time2.month
+        dsame = time1.day> time2.day
+        hsame = time1.hour > time2.hour
+        misame = time1.minute > time2.minute
+        ssame = time1.second > time2.second
+    elif comptype == "!=":
+        ysame = time1.year != time2.year
+        msame = time1.month != time2.month
+        dsame = time1.day!= time2.day
+        hsame = time1.hour != time2.hour
+        misame = time1.minute != time2.minute
+        ssame = time1.second != time2.second
+
+    if revel in revlist[0:len(revlist)]:
+        sametime = ysame
+    if revel in revlist[1:len(revlist)]:
+        sametime = sametime and msame
+    if revel in revlist[2:len(revlist)]:
+        sametime = sametime and dsame
+    if revel in revlist[3:len(revlist)]:
+        sametime = sametime and hsame
+    if revel in revlist[4:len(revlist)]:
+        sametime = sametime and misame
+    if revel in revlist[5:len(revlist)]:
+        sametime = sametime and ssame
+    return sametime

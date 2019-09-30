@@ -2,6 +2,8 @@
 # Summary.py -　プログラム全体統合的実行
 
 #######################使用ごとに変更するところ############################################
+# .pyファイルのあるフォルダ
+py_pass = r'C:\Users\Student\Documents\Pworks\PCWMAnalysis'
 # データのあるフォルダ（作業フォルダ）（エクスプローラ上部passをそのままコピー）
 # このフォルダの中に全csvファイルおよびデータの入ったサブフォルダを置く
 folder_pass = r"E:\Clouds\OneDrive - g.ecc.u-tokyo.ac.jp\LEP\2019\現行資料\0802春季モンゴル解析2\OriginalData"
@@ -10,10 +12,10 @@ period_csv = 'SitePeriod.csv'
 
 ## 時刻合わせ関数用
 # WMデータファイルが入ったフォルダ名
-wmdata_pass = "ModifiedKestrel"
+wmdata_pass = "ModWM"
 
 # PCデータファイルが入ったフォルダpass
-pcdata_pass = "ModifiedPC"
+pcdata_pass = "ModPC"
 
 # 時刻間隔（s）（PC, WMの測定間隔の最大公約数）
 timesep = 10
@@ -36,6 +38,8 @@ import pandas as pd
 import os
 import glob
 
+# 他の関数の入った.pyをインポート
+os.chdir(py_pass)
 import timeadj
 import reuexcep
 import avebyn
@@ -51,6 +55,10 @@ wmdata_pass = os.path.join(folder_pass, wmdata_pass)
 pcdata_pass = os.path.join(folder_pass, pcdata_pass)
 excep_csv = os.path.join(folder_pass, excep_csv)
 event_csv = os.path.join(folder_pass, event_csv)
+
+### オリジナルデータからの加工
+# 引数：period_csv, wmdata_pass, pcdata_pass, timesep
+# 出力データ： (csvファイル in .\timeadj)
 
 ### サイトごとの時刻合わせデータ作成
 # 引数：period_csv, wmdata_pass, pcdata_pass, timesep
