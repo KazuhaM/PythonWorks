@@ -54,6 +54,7 @@ def timeadj(p_period_csv, p_wmdata_pass, p_pcdata_pass, p_timesep):
                         tmpPC_csv = tmpPC_csv.rename(columns={tmpPC_csv.columns[0]: 'Time'})
                         tmpPC_csv["Time"] = pd.to_datetime(tmpPC_csv["Time"], format=r'%Y/%m/%d %H:%M')
                         # 秒が消えてないか判定
+
                         # 時系列とその時の該当iIDNoのデータを切り出して、sumajdataにマージ
                         if "LR5061-" + str(iIDNo) in list(tmpPC_csv.columns):
                             tmpPC_csv=tmpPC_csv.loc[:,[tmpPC_csv.columns[0],"LR5061-" + str(iIDNo)]]
@@ -148,3 +149,6 @@ def timecomp(time1, time2, revel="second", comptype="=="):
     if revel in revlist[5:len(revlist)]:
         sametime = sametime and ssame
     return sametime
+
+def secheck(times=6):
+    
