@@ -3,10 +3,12 @@
 
 #######################使用ごとに変更するところ############################################
 # .pyファイルのあるフォルダ
-py_pass = r'C:\Users\Student\Documents\Pworks\PCWMAnalysis'
+py_pass = r'D:\Documents\PythonWorks\PCWMAnalysis'
+# py_pass = r'C:\Users\Student\Documents\Pworks\PCWMAnalysis'
 # データのあるフォルダ（作業フォルダ）（エクスプローラ上部passをそのままコピー）
 # このフォルダの中に全csvファイルおよびデータの入ったサブフォルダを置く
-folder_pass = r"E:\Clouds\OneDrive - g.ecc.u-tokyo.ac.jp\LEP\2019\現行資料\0802春季モンゴル解析2\OriginalData"
+folder_pass = r"D:\OneDrive - g.ecc.u-tokyo.ac.jp\LEP\2019\現行資料\0802春季モンゴル解析2\OriginalData"
+# folder_pass = r"E:\Clouds\OneDrive - g.ecc.u-tokyo.ac.jp\LEP\2019\現行資料\0802春季モンゴル解析2\OriginalData"
 # サイトごとの観測期間ファイル
 period_csv = 'SitePeriod.csv'
 
