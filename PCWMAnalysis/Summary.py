@@ -6,12 +6,12 @@
 run_func = [0,0,1,0]
 
 # .pyファイルのあるフォルダ
-py_pass = r'D:\Documents\PythonWorks\PCWMAnalysis'
-# py_pass = r'C:\Users\Student\Documents\Pworks\PCWMAnalysis'
+# py_pass = r'D:\Documents\PythonWorks\PCWMAnalysis'
+py_pass = r'C:\Users\Student\Documents\Pworks\PCWMAnalysis'
 # データのあるフォルダ（作業フォルダ）（エクスプローラ上部passをそのままコピー）
 # このフォルダの中に全csvファイルおよびデータの入ったサブフォルダを置く
-folder_pass = r"D:\OneDrive - g.ecc.u-tokyo.ac.jp\LEP\2019\現行資料\0802春季モンゴル解析2\OriginalData"
-# folder_pass = r"E:\Clouds\OneDrive - g.ecc.u-tokyo.ac.jp\LEP\2019\現行資料\0802春季モンゴル解析2\OriginalData"
+# folder_pass = r"D:\OneDrive - g.ecc.u-tokyo.ac.jp\LEP\2019\現行資料\0802春季モンゴル解析2\OriginalData"
+folder_pass = r"E:\Clouds\OneDrive - g.ecc.u-tokyo.ac.jp\LEP\2019\現行資料\0802春季モンゴル解析2\OriginalData"
 # サイトごとの観測期間ファイル
 period_csv = 'SitePeriod.csv'
 
@@ -31,7 +31,9 @@ excep_csv = 'ExceptionPeriod.csv'
 
 ## n秒間平均値算出用
 # 何秒で平均を取るか
-avetime = 60 * 5
+
+avetime = [60, 180, 300, 600, 1800]
+
 
 # ## イベント分割用
 # # イベント期間ファイル
@@ -86,12 +88,13 @@ if run_func[2] == 1:
     # ファイル一覧取得
     excep_csvpass = os.path.join(folder_pass, 'excep', '*.csv')
     excep_flist = glob.glob(excep_csvpass)
-    # 各ファイルについて実行
-    for iexcep in excep_flist:
-        ## 関数実行
-        # 引数：ファイルの名前（excep_flist）, avetime, timesep
-        # 出力データ： (csvファイル in .\\avebyn)
-        avebyn.avebyn(iexcep, avetime, timesep)
+    for iavetime in avetime:
+        # 各ファイルについて実行
+        for iexcep in excep_flist:
+            ## 関数実行
+            # 引数：ファイルの名前（excep_flist）, avetime, timesep
+            # 出力データ： (csvファイル in .\\avebyn)
+            avebyn.avebyn(iexcep, iavetime, timesep)
 
 ### イベントでファイル分割
 if run_func[3] == 1:

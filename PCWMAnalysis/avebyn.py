@@ -13,12 +13,14 @@ from datetime import timedelta
 import numexpr
 import statistics
 import numpy as np
+import re
 
 # 引数：ファイルの名前（excep_flist）, avetime(何秒間で平均を取るか), timesep
 # 出力データ： (csvファイル in .\\avebyn)
 def avebyn(p_iexcep, p_avetime, p_timesep):
     dataf_csv = pd.read_csv(p_iexcep, sep=',')
     dataf_csv["Time"] = pd.to_datetime(dataf_csv["Time"], format=r'%Y-%m-%d %H:%M:%S')
+    wm_firstcol = dataf_csv.columns.get_loc(str([s for s in list(dataf_csv.columns) if re.match(r'WS.+', s)][0]))-1
     group_nrow = int(p_avetime / p_timesep)
 
     # 各列の間隔を算出して、各列について適切な値の個数をリストで取得
@@ -44,7 +46,8 @@ def avebyn(p_iexcep, p_avetime, p_timesep):
             if nonan_group == truenrow_eachcol:
                 ave_list = np.array(temp_group.sum())
                 nonan_group = np.array(nonan_group[1:])
-                ave_list = ave_list / nonan_group
+                ave_list[0:wm_firstcol] = ave_list[0:wm_firstcol] / p_avetime
+                ave_list[wm_firstcol:] = ave_list[wm_firstcol:] / nonan_group[wm_firstcol:]
                 ave_series = pd.Series([dataf_csv.iat[inowr,0]] + ave_list.tolist(), \
                     index = result_dataf.columns, name = len(result_dataf) )
                 result_dataf = result_dataf.append(ave_series)
