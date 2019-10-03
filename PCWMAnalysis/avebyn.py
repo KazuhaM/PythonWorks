@@ -61,7 +61,7 @@ def avebyn(p_iexcep, p_avetime, p_timesep):
        os.makedirs('.\\avebyn')
     out_filename = 'Av' + str(p_avetime) + '_' + (os.path.basename(p_iexcep)).replace('Ex_', '')
     result_dataf.to_csv('.\\avebyn\\' + out_filename, index = False)
-    print("avebyn: " + (os.path.basename(p_iexcep)).replace('.csv', '') + "まで終了")
+    print("avebyn: " + out_filename + "まで終了")
 ## 要件
 # 分の下桁が0 or 5 になる時刻から開始して、avetimeを加算したときに最大になる時刻までの平均
 # （ex. 300秒なら 2019/5/1/ 15:25:00 ～　2019/5/1/ 15:29:50）

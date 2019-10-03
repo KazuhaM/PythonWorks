@@ -3,7 +3,7 @@
 
 #######################使用ごとに変更するところ############################################
 # 実行プログラム
-run_func = [0,0,1,0]
+run_func = [0,0,0,1]
 
 # .pyファイルのあるフォルダ
 # py_pass = r'D:\Documents\PythonWorks\PCWMAnalysis'
@@ -32,12 +32,12 @@ excep_csv = 'ExceptionPeriod.csv'
 ## n秒間平均値算出用
 # 何秒で平均を取るか
 
-avetime = [60, 180, 300, 600, 1800]
+avetime = [300]
 
 
 # ## イベント分割用
 # # イベント期間ファイル
-event_csv = 'EventPeriod.csv'
+event_csv = 'EventPeriod2.csv'
 
 #######################関数本体###########################################################
 ### import
@@ -75,6 +75,7 @@ if run_func[1] == 1:
     # ファイル一覧取得
     timeadj_csvpass = os.path.join(folder_pass, 'timeadj', '*.csv')
     timeadj_flist = glob.glob(timeadj_csvpass)
+    # timeadj_flist = timeadj_flist[1:3]
     # 各ファイルについて実行
     for itimeadj in timeadj_flist:
         ## 関数実行
