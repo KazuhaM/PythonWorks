@@ -2,6 +2,9 @@
 # Summary.py -　プログラム全体統合的実行
 
 #######################使用ごとに変更するところ############################################
+# 実行プログラム
+run_func = [0,0,1,0]
+
 # .pyファイルのあるフォルダ
 py_pass = r'D:\Documents\PythonWorks\PCWMAnalysis'
 # py_pass = r'C:\Users\Student\Documents\Pworks\PCWMAnalysis'
@@ -30,8 +33,8 @@ excep_csv = 'ExceptionPeriod.csv'
 # 何秒で平均を取るか
 avetime = 60 * 5
 
-## イベント分割用
-# イベント期間ファイル
+# ## イベント分割用
+# # イベント期間ファイル
 event_csv = 'EventPeriod.csv'
 
 #######################関数本体###########################################################
@@ -45,7 +48,7 @@ os.chdir(py_pass)
 import timeadj
 import reuexcep
 import avebyn
-
+import sepevent
 
 ### 準備
 # 作業フォルダ変更
@@ -58,43 +61,44 @@ pcdata_pass = os.path.join(folder_pass, pcdata_pass)
 excep_csv = os.path.join(folder_pass, excep_csv)
 event_csv = os.path.join(folder_pass, event_csv)
 
-### オリジナルデータからの加工
-# 引数：period_csv, wmdata_pass, pcdata_pass, timesep
-# 出力データ： (csvファイル in .\timeadj)
-
 ### サイトごとの時刻合わせデータ作成
-# 引数：period_csv, wmdata_pass, pcdata_pass, timesep
-# 出力データ： (csvファイル in .\timeadj)
-timeadj.timeadj(period_csv, wmdata_pass, pcdata_pass, timesep)
+if run_func[0] == 1:
+    # 引数：period_csv, wmdata_pass, pcdata_pass, timesep
+    # 出力データ： (csvファイル in .\timeadj)
+    timeadj.timeadj(period_csv, wmdata_pass, pcdata_pass, timesep)
 
 ### 除外期間除去
-## .\\avebynフォルダ内のファイルについて逐次実行
-# ファイル一覧取得
-timeadj_csvpass = os.path.join(folder_pass, 'timeadj', '*.csv')
-timeadj_flist = glob.glob(timeadj_csvpass)
-# 各ファイルについて実行
-for itimeadj in timeadj_flist
-    ## 関数実行
-    # 引数：ファイルの名前（itimeadj）, excep_csv
-    # 出力データ： (csvファイル in .\excep)
-    reuexcep.reuexcep(itimeadj, excep_csv)
+if run_func[1] == 1:
+    ## .\\avebynフォルダ内のファイルについて逐次実行
+    # ファイル一覧取得
+    timeadj_csvpass = os.path.join(folder_pass, 'timeadj', '*.csv')
+    timeadj_flist = glob.glob(timeadj_csvpass)
+    # 各ファイルについて実行
+    for itimeadj in timeadj_flist:
+        ## 関数実行
+        # 引数：ファイルの名前（itimeadj）, excep_csv, timesep
+        # 出力データ： (csvファイル in .\excep)
+        reuexcep.reuexcep(itimeadj, excep_csv, timesep)
 
 ### n秒間平均値算出
-## .\excepフォルダ内のファイルについて逐次実行
-# ファイル一覧取得
-excep_csvpass = os.path.join(folder_pass, 'excep', '*.csv')
-excep_flist = glob.glob(excep_csvpass)
-# 各ファイルについて実行
-for iexcep in excep_flist
-    ## 関数実行
-    # 引数：ファイルの名前（excep_flist）, avetime
-    # 出力データ： (csvファイル in .\\avebyn)
-    avebyn.avebyn(iexcep, avetime)
+if run_func[2] == 1:
+    ## .\excepフォルダ内のファイルについて逐次実行
+    # ファイル一覧取得
+    excep_csvpass = os.path.join(folder_pass, 'excep', '*.csv')
+    excep_flist = glob.glob(excep_csvpass)
+    # 各ファイルについて実行
+    for iexcep in excep_flist:
+        ## 関数実行
+        # 引数：ファイルの名前（excep_flist）, avetime, timesep
+        # 出力データ： (csvファイル in .\\avebyn)
+        avebyn.avebyn(iexcep, avetime, timesep)
 
 ### イベントでファイル分割
-## .\avebynフォルダ内のファイルについて逐次実行
-# ファイル一覧取得
-# 各ファイルについて実行
-    ## 関数実行
-    # 引数：ファイルの名前, event_csv
-    # 出力データ： (csvファイル in .\\sepevent)
+if run_func[3] == 1:
+    ## .\avebynフォルダ内のファイルについて逐次実行
+    # ファイル一覧取得
+    # 各ファイルについて実行
+        ## 関数実行
+        # 引数：ファイルの名前, event_csv
+        # 出力データ： (csvファイル in .\\sepevent)
+    sepevent.sepevent(event_csv)

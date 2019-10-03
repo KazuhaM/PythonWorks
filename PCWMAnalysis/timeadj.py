@@ -7,14 +7,18 @@ import datetime as dt
 import numpy as np
 from datetime import timedelta
 import os
+import shutil
 import glob
 import shelve
 import math
+import re
 
 def timeadj(p_period_csv, p_wmdata_pass, p_pcdata_pass, p_timesep):
     # 変数一時保管ファイルの居場所を作る
     tmp_pass = os.path.join(os.getcwd(), 'tmp')
     os.makedirs(tmp_pass)
+
+    # サイトの開始・終了日時を書いたファイルを開く
     siteperiod_csv = pd.read_csv(p_period_csv, sep=',')
     # 日時列をdatetime形式に
     siteperiod_csv["Start"] = pd.to_datetime(siteperiod_csv["Start"], format=r'%Y/%m/%d %H:%M')
@@ -24,7 +28,7 @@ def timeadj(p_period_csv, p_wmdata_pass, p_pcdata_pass, p_timesep):
     ## siteperiod_csvの各行について実行。
                                                             # uniSiteID = siteperiod_csv["SiteID"].unique()
     siteperiod_num = len(siteperiod_csv.index)    # 一時変数に入れておく
-    for iSite in range(2, siteperiod_num + 2):
+    for iSite in range(siteperiod_num):
         # サイト期間ファイルの2行目から順に見ていく
         ## 各行のデータを一時変数に渡して、各処理を行う関数に渡す
         # 要作成データ：SiteID, IDNo, Type, Height, Start, End,
@@ -51,6 +55,7 @@ def timeadj(p_period_csv, p_wmdata_pass, p_pcdata_pass, p_timesep):
 
                 # データファイルごとに処理
                 for iDataf in range(len(dataflst)):
+                    # print(iDataf)
                     # ファイルを開く
                     tmpPC_csv = pd.read_csv(dataflst[iDataf], sep=',')
                     tmpPC_csv = tmpPC_csv.rename(columns={tmpPC_csv.columns[0]: 'Time'})
@@ -58,23 +63,37 @@ def timeadj(p_period_csv, p_wmdata_pass, p_pcdata_pass, p_timesep):
                     # 最初と最後の時刻を取る
                     fStart = tmpPC_csv.iat[0,0]
                     fend = tmpPC_csv.iat[len(tmpPC_csv["Time"])-1,0]
-                    if not timecomp(fend, iStart, comptype= "<=") and\
-                         not timecomp(iEnd, fStart, comptype= "<=") and\
-                        "LR5061-" + str(iIDNo) in list(tmpPC_csv.columns):
+                    PCidinList = [s for s in list(tmpPC_csv.columns) if re.match('^LR5061-(0)*' + str(iIDNo) + '$', s)]
+                    if not fend <= iStart and\
+                         not iEnd <= fStart and\
+                         len(PCidinList) == 1:
                         # 秒が消えてないか判定（最初の三行で秒が00のままなら秒データが消えていると判定して再生成）
                         if tmpPC_csv.iat[0,0].second == 0 and \
                             tmpPC_csv.iat[1,0].second == 0 and \
                             tmpPC_csv.iat[2,0].second == 0:
+                            print('iSite:'+ str(iSite)+', iDataf:'+ str(iDataf)+', iIDNo:'+ str(iIDNo))
                             modsec(tmpPC_csv)
 
                         # 時系列とその時の該当iIDNoのデータを切り出して、sumajdataにマージ
-                        tmpPC_csv=tmpPC_csv.loc[:,[tmpPC_csv.columns[0],"LR5061-" + str(iIDNo)]]
-                        sumajdata = pd.merge(sumajdata, tmpPC_csv, left_on='Time', right_on=tmpPC_csv.columns[0], how='left')
-                        sumajdata = sumajdata.rename(columns={"LR5061-" + str(iIDNo): colname})
-                        # 作成したsumajdataをシェルフファイルに保存
-                        shelf_file = shelve.open('./tmp/tempdata')
-                        shelf_file[colname] = sumajdata
-                        shelf_file.close()
+                        tmpPC_csv=tmpPC_csv.loc[:,[tmpPC_csv.columns[0],PCidinList[0]]]
+                        sumajdata_test = pd.merge(sumajdata, tmpPC_csv, left_on='Time', right_on=tmpPC_csv.columns[0], how='left')
+                        if not sumajdata_test[PCidinList[0]].isnull().all():
+                            sumajdata = pd.merge(sumajdata, tmpPC_csv, left_on='Time', right_on=tmpPC_csv.columns[0], how='left')
+                            if len(sumajdata.columns) != 2:
+                                if sumajdata.iloc[:, 1].isnull().any():
+                                    boolnullist = list(sumajdata.iloc[:, 1].isnull())
+                                    for isumr in range(len(boolnullist)):
+                                        if boolnullist[isumr]:
+                                            sumajdata.iloc[isumr, 1] = sumajdata.iloc[isumr, 2]
+                                    del sumajdata[PCidinList[0]]
+                            else:
+                                sumajdata = sumajdata.rename(columns={PCidinList[0]: colname})
+                # 作成したsumajdataをシェルフファイルに保存
+                shelf_file = shelve.open('./tmp/tempdata')
+                while colname in list(shelf_file.keys()):
+                    colname = colname + '_2'
+                shelf_file[colname] = sumajdata
+                shelf_file.close()
             elif iType == 'WM':
                 # StartとEndから作った一連の時刻の列と、それと同じ行数を持つ空の値を持つ列（データ挿入用）を持つデータフレーム（pd.DataFrame）を作る
                 colname = 'WM' + str(iIDNo) +'_' + str(iHeight)
@@ -101,95 +120,105 @@ def timeadj(p_period_csv, p_wmdata_pass, p_pcdata_pass, p_timesep):
                     fStart = tmpWM_csv.iat[0,0]
                     fend = tmpWM_csv.iat[len(tmpWM_csv["Time"])-1,0]
                     # 時刻が適切でかつ測器番号が今調べているIDと合致するか
-                    if not timecomp(fend, iStart, comptype= "<=") and \
-                         not timecomp(iEnd, fStart, comptype= "<=") and \
+                    if not fend <= iStart and\
+                         not iEnd <= fStart and\
                          Dataf_day == str(iIDNo):
                         # 秒が消えてないか判定（最初の三行で秒が00のままなら秒データが消えていると判定して再生成）
                         if tmpWM_csv.iat[0,0].second == 0 and \
                             tmpWM_csv.iat[1,0].second == 0 and \
                             tmpWM_csv.iat[2,0].second == 0:
+                            print('iSite:'+ str(iSite)+', iDataf:'+ str(iDataf)+', iIDNo:'+ str(iIDNo))
                             modsec(tmpWM_csv)
                         # 時系列とその時の該当iIDNoのデータを切り出して、sumajdataにマージ
                         tmpWM_csv=tmpWM_csv.loc[:,["Time","Wind Speed","True Dir."]]
-                        sumajdata = pd.merge(sumajdata, tmpWM_csv, left_on='Time', right_on=tmpWM_csv.columns[0], how='left')
-                        sumajdata = sumajdata.rename(columns={"Wind Speed": 'WS_' + str(iHeight), "True Dir.": 'WD_' + str(iHeight)})
-                        # 作成したsumajdataをシェルフファイルに保存
-                        shelf_file = shelve.open('./tmp/tempdata')
-                        shelf_file[colname] = sumajdata
-                        shelf_file.close()
+                        sumajdata_test = pd.merge(sumajdata, tmpWM_csv, left_on='Time', right_on=tmpWM_csv.columns[0], how='left')
+                        if not sumajdata_test["Wind Speed"].isnull().all():
+                            sumajdata = pd.merge(sumajdata, tmpWM_csv, left_on='Time', right_on=tmpWM_csv.columns[0], how='left')
+                            if len(sumajdata.columns) != 3:
+                                if sumajdata.iloc[:, 1].isnull().any():
+                                    boolnullist = list(sumajdata.iloc[:, 1].isnull())
+                                    for isumr in range(len(boolnullist)):
+                                        if boolnullist[isumr]:
+                                            sumajdata.iloc[isumr, 1] = sumajdata.iloc[isumr, 3]
+                                            sumajdata.iloc[isumr, 2] = sumajdata.iloc[isumr, 4]
+                                    del sumajdata["Wind Speed"]
+                                    del sumajdata["True Dir."]
+                            else:
+                                sumajdata = sumajdata.rename(columns={"Wind Speed": 'WS_' + str(iHeight), "True Dir.": 'WD_' + str(iHeight)})
+                # 作成したsumajdataをシェルフファイルに保存
+                shelf_file = shelve.open('./tmp/tempdata')
+                while colname in list(shelf_file.keys()):
+                    colname = colname + '_2'
+                shelf_file[colname] = sumajdata
+                shelf_file.close()
             else:
                 raise Exception('siteperiod_csvのTypeに不正な形式があります。' + str(iSite) + '行目')
         except Exception as err:
             print('ERROR: ' + str(err))
+        if iSite == siteperiod_num - 1:
+            tadoutput(iSiteID, tmp_pass, './tmp/tempdata')
+        elif iSiteID != siteperiod_csv["SiteID"][iSite + 1]:
+            tadoutput(iSiteID, tmp_pass, './tmp/tempdata')
+        print("timeadj: " + str(iSite + 1) +  "/"  + str(siteperiod_num) + "列まで終了")
+    shutil.rmtree(tmp_pass)
 
-        shelfkeys_list = list(shelf_file.keys())
-        len_shelf = len(shelfkeys_list)
-
-        if iSiteID != siteperiod_csv["SiteID"][iSite + 1]:
-            shelf_file = shelve.open('./tmp/tempdata')
-            for shnum in range(len_shelf):
-                if shnum == 0:
-                    output = shelf_file[shelfkeys_list[shnum]]
-                else:
-                    output = pd.merge(output, shelf_file[shelfkeys_list[shnum]], on='Time', how='outer')
-            shelf_file.close()
-            # csvファイル出力する　@ .\timeadj
-            if not os.path.exists(r'.\timeadj'):
-                os.makedirs(r'.\timeadj')
-            out_filename = 'TiAd_' + iSiteID + '.csv'
-            output.to_csv('.\\timeadj\\' + out_filename, index = False)
-        # 開くべきデータファイルの一覧を取得する
-        # データファイルを一つずつ開く
-        # データファイル2行目について、データフレームの時刻列に存在するか確認する
-        # 存在したら該当する時刻のデータフレームの行のデータ挿入用列に必要なデータを上書きする
-        # 存在しなければデータフレームの次の行を見て同様にする
-        # 一度存在したら、次のデータファイル行をデータフレームの次の行に挿入していく
-        # その際、時刻の同一性を必ず確認し、同一でなければさらに次のデータフレームの行をトライする
-        # データファイルの最終行まで行ったらデータフレームをシェルフファイルに保存し（開いて代入して閉じる）次の開くべきデータファイルに移行する
-        # 開くべきデータファイルがすべて検証し終わったらサイト期間ファイルの次の行に移行する
-        # SiteIDが次の行で変わるなら、シェルフファイルを開いてマージ処理をする（pd.DataFrame.merge(), pd.merge(データフレーム1, データフレーム2, on='統合のキーに使う列名', how='outer'))）
-        # シェルフファイルを初期化する
-
-    
+def tadoutput(p_iSiteID, p_tmp_pass, p_shelf_pass):
+    shelf_file = shelve.open(p_shelf_pass)
+    shelfkeys_list = list(shelf_file.keys())
+    len_shelf = len(shelfkeys_list)
+    for shnum in range(len_shelf):
+        if shnum == 0:
+            output = shelf_file[shelfkeys_list[shnum]]
+        else:
+            output = pd.merge(output, shelf_file[shelfkeys_list[shnum]], on='Time', how='outer')
+    shelf_file.close()
+    output.sort_values('Time', inplace=True)
+    # csvファイル出力する　@ .\timeadj
+    if not os.path.exists(r'.\timeadj'):
+        os.makedirs(r'.\timeadj')
+    out_filename = 'TiAd_' + p_iSiteID + '.csv'
+    output.to_csv('.\\timeadj\\' + out_filename, index = False)
+    shutil.rmtree(p_tmp_pass)
+    os.makedirs(p_tmp_pass)
 
 
-def timecomp(time1, time2, revel="second", comptype="=="):
-    revlist = ["year", "month", "day", "hour", "minute", "second"]
-    if comptype == "==":
-        ysame = time1.year == time2.year
-        msame = time1.month == time2.month
-        dsame = time1.day == time2.day
-        hsame = time1.hour == time2.hour
-        misame = time1.minute == time2.minute
-        ssame = time1.second == time2.second
-    elif comptype == ">=":
-        ysame = time1.year >= time2.year
-        msame = time1.month >= time2.month
-        dsame = time1.day >= time2.day
-        hsame = time1.hour >= time2.hour
-        misame = time1.minute >= time2.minute
-        ssame = time1.second >= time2.second
-    elif comptype == "<=":
-        ysame = time1.year <= time2.year
-        msame = time1.month <= time2.month
-        dsame = time1.day <= time2.day
-        hsame = time1.hour <= time2.hour
-        misame = time1.minute <= time2.minute
-        ssame = time1.second <= time2.second
+# def timecomp(time1, time2, revel="second", comptype="=="):
+#     revlist = ["year", "month", "day", "hour", "minute", "second"]
+#     if comptype == "==":
+#         ysame = time1.year == time2.year
+#         msame = time1.month == time2.month
+#         dsame = time1.day == time2.day
+#         hsame = time1.hour == time2.hour
+#         misame = time1.minute == time2.minute
+#         ssame = time1.second == time2.second
+#     elif comptype == ">=":
+#         ysame = time1.year >= time2.year
+#         msame = time1.month >= time2.month
+#         dsame = time1.day >= time2.day
+#         hsame = time1.hour >= time2.hour
+#         misame = time1.minute >= time2.minute
+#         ssame = time1.second >= time2.second
+#     elif comptype == "<=":
+#         ysame = time1.year <= time2.year
+#         msame = time1.month <= time2.month
+#         dsame = time1.day <= time2.day
+#         hsame = time1.hour <= time2.hour
+#         misame = time1.minute <= time2.minute
+#         ssame = time1.second <= time2.second
 
-    if revel in revlist[0:len(revlist)]:
-        sametime = ysame
-    if revel in revlist[1:len(revlist)]:
-        sametime = sametime and msame
-    if revel in revlist[2:len(revlist)]:
-        sametime = sametime and dsame
-    if revel in revlist[3:len(revlist)]:
-        sametime = sametime and hsame
-    if revel in revlist[4:len(revlist)]:
-        sametime = sametime and misame
-    if revel in revlist[5:len(revlist)]:
-        sametime = sametime and ssame
-    return sametime
+#     if revel in revlist[0:len(revlist)]:
+#         sametime = ysame
+#     if revel in revlist[1:len(revlist)]:
+#         sametime = sametime and msame
+#     if revel in revlist[2:len(revlist)]:
+#         sametime = sametime and dsame
+#     if revel in revlist[3:len(revlist)]:
+#         sametime = sametime and hsame
+#     if revel in revlist[4:len(revlist)]:
+#         sametime = sametime and misame
+#     if revel in revlist[5:len(revlist)]:
+#         sametime = sametime and ssame
+#     return sametime
 
 def modsec(data):
     ## 何秒間隔かを判定する
@@ -197,8 +226,8 @@ def modsec(data):
     d_min = (data.iat[len(data["Time"])-1,0] - data.iat[0,0]).total_seconds() // 60
     # 行数を取得.
     d_nrow = len(data["Time"])
-    # 1分当たりの列数を取得（3列なら60/3で20秒間隔）（切り上げて+1)
-    nsec = math.ceil(d_nrow // d_min)
+    # 1分当たりの行数を取得（3行なら60/3で20秒間隔）（切り上げ)
+    nsec = math.ceil(d_nrow / d_min)
     fmin = -1
     fsec = 0
     count = 0
@@ -212,4 +241,4 @@ def modsec(data):
             fsec = 0
             fmin = data.iat[irow,0].minute
             count = 1
-        assert count <= nsec, 'modsec関数内において秒の値が60を超えます'
+        assert count <= nsec, str(count) + str(nsec) + str(data.iat[irow,0]) + ':modsec関数内において秒の値が60を超えます'
