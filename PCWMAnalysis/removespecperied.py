@@ -5,8 +5,6 @@
 # 実行プログラム
 # run_func = [0,0,1,0]
 run_func = [0,0,0,1]
-# run_func = [0,1,1,0]
-# run_func = [0,1,0,0]
 
 # .pyファイルのあるフォルダ
 py_pass = r'D:\Documents\PythonWorks\PCWMAnalysis'
@@ -100,7 +98,7 @@ if run_func[2] == 1:
             # 出力データ： (csvファイル in .\\avebyn)
             avebyn.avebyn(iexcep, iavetime, timesep)
 
-### イベント情報代入
+### イベントでファイル分割
 if run_func[3] == 1:
     ## .\avebynフォルダ内のファイルについて逐次実行
     # ファイル一覧取得

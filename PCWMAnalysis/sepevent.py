@@ -8,13 +8,13 @@ import numexpr
 ## 関数実行
 # 引数：ファイルの名前, event_csv
 # 出力データ： (csvファイル in .\\sepevent)
-def sepevent(p_event_csv):
+def sepevent(p_event_csv, p_sumdata):
     eventf_csv = pd.read_csv(p_event_csv, sep=',')
     eventf_csv["Start"] = pd.to_datetime(eventf_csv["Start"], format=r'%Y-%m-%d %H:%M')
     eventf_csv["End"] = pd.to_datetime(eventf_csv["End"], format=r'%Y-%m-%d %H:%M')
     nevent = len(eventf_csv)
 
-    sumdata = pd.read_csv("sumdata.csv", sep=',')
+    sumdata = pd.read_csv(p_sumdata, sep=',')
     sumdata["Time"] = pd.to_datetime(sumdata["Time"], format=r'%Y-%m-%d %H:%M:%S')
     sumdata["Event"] = 99
 
@@ -28,5 +28,5 @@ def sepevent(p_event_csv):
             if iStart <= sumdata["Time"][irow] and sumdata["Time"][irow] <= iEnd:
                 sumdata.iat[irow,2] = iEventID
 
-    out_filename = 'Ev_sumdata.csv'
+    out_filename = 'Ev_' + p_sumdata 
     sumdata.to_csv(out_filename, index = False)

@@ -181,45 +181,6 @@ def tadoutput(p_iSiteID, p_tmp_pass, p_shelf_pass):
     shutil.rmtree(p_tmp_pass)
     os.makedirs(p_tmp_pass)
 
-
-# def timecomp(time1, time2, revel="second", comptype="=="):
-#     revlist = ["year", "month", "day", "hour", "minute", "second"]
-#     if comptype == "==":
-#         ysame = time1.year == time2.year
-#         msame = time1.month == time2.month
-#         dsame = time1.day == time2.day
-#         hsame = time1.hour == time2.hour
-#         misame = time1.minute == time2.minute
-#         ssame = time1.second == time2.second
-#     elif comptype == ">=":
-#         ysame = time1.year >= time2.year
-#         msame = time1.month >= time2.month
-#         dsame = time1.day >= time2.day
-#         hsame = time1.hour >= time2.hour
-#         misame = time1.minute >= time2.minute
-#         ssame = time1.second >= time2.second
-#     elif comptype == "<=":
-#         ysame = time1.year <= time2.year
-#         msame = time1.month <= time2.month
-#         dsame = time1.day <= time2.day
-#         hsame = time1.hour <= time2.hour
-#         misame = time1.minute <= time2.minute
-#         ssame = time1.second <= time2.second
-
-#     if revel in revlist[0:len(revlist)]:
-#         sametime = ysame
-#     if revel in revlist[1:len(revlist)]:
-#         sametime = sametime and msame
-#     if revel in revlist[2:len(revlist)]:
-#         sametime = sametime and dsame
-#     if revel in revlist[3:len(revlist)]:
-#         sametime = sametime and hsame
-#     if revel in revlist[4:len(revlist)]:
-#         sametime = sametime and misame
-#     if revel in revlist[5:len(revlist)]:
-#         sametime = sametime and ssame
-#     return sametime
-
 def modsec(data):
     ## 何秒間隔かを判定する
     # 何分あるかを取得

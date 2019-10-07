@@ -28,7 +28,7 @@ def reuexcep(p_itimeadj, p_excep_csv, p_timesep):
 
     ## 対象ファイルについて、除去期間に記載の全除去期間を探査する
     for excep_row in range(len_excep):
-        if SiteID in excepf_csv.iat[excep_row,0]:
+        if excepf_csv.iat[excep_row,0] in SiteID:
             # 終了時刻のみ（この時刻以前は除去）
             if excepf_csv.iat[excep_row,1] == 1:
                 # 時刻列をリストとして取得して、その中から該当する時刻を探索
