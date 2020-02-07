@@ -1,13 +1,14 @@
 #! python3
 # Summary.py -　プログラム全体統合的実行
 
+# 温度、相対湿度用コード
 #######################使用ごとに変更するところ############################################
 # 実行プログラム
 # run_func = [0,0,1,0]
-run_func = [0,0,0,1]
+# run_func = [0,0,0,1]
 # run_func = [0,1,1,0]
 # run_func = [0,1,0,0]
-# run_func = [1,1,1,0]
+run_func = [0,1,1,0]
 # .pyファイルのあるフォルダ
 # py_pass = r'D:\Documents\PythonWorks\PCWMAnalysis'
 py_pass = r'C:\Users\Student\Documents\Pworks\PCWMAnalysis'
@@ -51,10 +52,10 @@ import glob
 
 # 他の関数の入った.pyをインポート
 os.chdir(py_pass)
-import timeadj
-import reuexcep
-import avebyn
-import sepevent
+import temp_timeadj
+import temp_reuexcep
+import temp_avebyn
+# import sepevent
 
 ### 準備
 # 作業フォルダ変更
@@ -71,13 +72,13 @@ event_csv = os.path.join(folder_pass, event_csv)
 if run_func[0] == 1:
     # 引数：period_csv, wmdata_pass, pcdata_pass, timesep
     # 出力データ： (csvファイル in .\timeadj)
-    timeadj.timeadj(period_csv, wmdata_pass, pcdata_pass, timesep)
+    temp_timeadj.timeadj(period_csv, wmdata_pass, pcdata_pass, timesep)
 
 ### 除外期間除去
 if run_func[1] == 1:
     ## .\\avebynフォルダ内のファイルについて逐次実行
     # ファイル一覧取得
-    timeadj_csvpass = os.path.join(folder_pass, 'timeadj', '*.csv')
+    timeadj_csvpass = os.path.join(folder_pass, 'temp_timeadj', '*.csv')
     timeadj_flist = glob.glob(timeadj_csvpass)
     # timeadj_flist = timeadj_flist[1:3]
     # 各ファイルについて実行
@@ -85,13 +86,13 @@ if run_func[1] == 1:
         ## 関数実行
         # 引数：ファイルの名前（itimeadj）, excep_csv, timesep
         # 出力データ： (csvファイル in .\excep)
-        reuexcep.reuexcep(itimeadj, excep_csv, timesep)
+        temp_reuexcep.reuexcep(itimeadj, excep_csv, timesep)
 
 ### n秒間平均値算出
 if run_func[2] == 1:
     ## .\excepフォルダ内のファイルについて逐次実行
     # ファイル一覧取得
-    excep_csvpass = os.path.join(folder_pass, 'excep', '*.csv')
+    excep_csvpass = os.path.join(folder_pass, 'temp_excep', '*.csv')
     excep_flist = glob.glob(excep_csvpass)
     for iavetime in avetime:
         # 各ファイルについて実行
@@ -99,20 +100,20 @@ if run_func[2] == 1:
             ## 関数実行
             # 引数：ファイルの名前（excep_flist）, avetime, timesep
             # 出力データ： (csvファイル in .\\avebyn)
-            avebyn.avebyn(iexcep, iavetime, timesep)
+            temp_avebyn.avebyn(iexcep, iavetime, timesep)
 
 # ###時系列グラフ、平均値ごとの全サイト統合データ作成
 # r = pyper.R()
 # r(r"setwd('C:/Users/Student/Documents/Pworks/PCWMAnalysis'); source(file='MergeData_PlotSummary.r',encoding='utf-8')")
 
-### イベント情報代入
-if run_func[3] == 1:
-    ## .\avebynフォルダ内のファイルについて逐次実行
-    # ファイル一覧取得
-    # 各ファイルについて実行
-        ## 関数実行
-        # 引数：ファイルの名前, event_csv
-        # 出力データ： (csvファイル in .\\sepevent)
-    for isec in range(len(avetime)):
-        sumdata_pass = str(avetime[isec]) + '_sumdata.csv'
-        sepevent.sepevent(event_csv, sumdata_pass)
+# ### イベント情報代入
+# if run_func[3] == 1:
+#     ## .\avebynフォルダ内のファイルについて逐次実行
+#     # ファイル一覧取得
+#     # 各ファイルについて実行
+#         ## 関数実行
+#         # 引数：ファイルの名前, event_csv
+#         # 出力データ： (csvファイル in .\\sepevent)
+#     for isec in range(len(avetime)):
+#         sumdata_pass = str(avetime[isec]) + '_sumdata.csv'
+#         sepevent.sepevent(event_csv, sumdata_pass)
