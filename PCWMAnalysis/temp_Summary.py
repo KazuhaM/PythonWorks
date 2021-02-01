@@ -4,17 +4,21 @@
 # 温度、相対湿度用コード
 #######################使用ごとに変更するところ############################################
 # 実行プログラム
-# run_func = [0,0,1,0]
+# run_func = [1,1,1,0]
 run_func = [0,0,0,1]
+
+# run_func = [0,0,1,0]
 # run_func = [0,1,1,0]
 # run_func = [0,1,0,0]
-# run_func = [0,1,1,0]
+
 # .pyファイルのあるフォルダ
 py_pass = r'D:\Documents\Pworks\PCWMAnalysis'
 # py_pass = r'C:\Users\Student\Documents\Pworks\PCWMAnalysis'
 # データのあるフォルダ（作業フォルダ）（エクスプローラ上部passをそのままコピー）
 # このフォルダの中に全csvファイルおよびデータの入ったサブフォルダを置く
-folder_pass = r"D:\OneDrive - g.ecc.u-tokyo.ac.jp\LEP\2019\現行資料\0802春季モンゴル解析2\OriginalData"
+# folder_pass = r"D:\OneDrive - g.ecc.u-tokyo.ac.jp\LEP\2019\現行資料\0802春季モンゴル解析2\OriginalData"
+# folder_pass = r"D:\OneDrive - g.ecc.u-tokyo.ac.jp\LEP\2020\00working\1102MongoliaAnalysis7\Cul\recul_event"
+folder_pass = r"D:\OneDrive - g.ecc.u-tokyo.ac.jp\LEP\2020\00working\1301MongoliaAnalysis8\NsiteRecul\recul_event_N" # Nサイト用
 # folder_pass = r"E:\Clouds\OneDrive - g.ecc.u-tokyo.ac.jp\LEP\2019\現行資料\0802春季モンゴル解析2\OriginalData"
 # サイトごとの観測期間ファイル
 period_csv = 'SitePeriod.csv'
@@ -41,7 +45,8 @@ avetime = [60, 180, 300, 600, 1800 ]
 
 # ## イベント分割用
 # # イベント期間ファイル
-event_csv = 'EventPeriod.csv'
+# event_csv = 'EventPeriod2.csv'
+event_csv = 'EventPeriod2_N.csv'
 
 #######################関数本体###########################################################
 ### import
