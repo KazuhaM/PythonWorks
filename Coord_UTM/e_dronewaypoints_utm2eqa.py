@@ -3,7 +3,7 @@ import pandas as pd
 from tqdm import tqdm
 
 # read csv
-dataFolder = "C:/Users/niedo/OneDrive/SL/2022/202206モンゴル調査/PreliminaryStudy/kml"
+dataFolder = "C:/Users/niedo/OneDrive/SL/2022/202206MongoliaSurvey/PreliminaryStudy/kml"
 data_csv = pd.read_csv(dataFolder + "/DroneWaypoints_coordinateUTM.csv")
 
 # make blank data frame for the result

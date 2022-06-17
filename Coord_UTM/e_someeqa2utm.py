@@ -2,7 +2,7 @@ import f_eqa2utm
 import pandas as pd
 
 # read csv
-dataFolder = "C:/Users/niedo/OneDrive/SL/2022/202206モンゴル調査/PreliminaryStudy/GPX"
+dataFolder = "C:/Users/niedo/OneDrive/SL/2022/202206MongoliaSurvey/PreliminaryStudy/GPX"
 data_csv = pd.read_csv(dataFolder + "/Grid240_ponits_coordinate.csv")
 
 # make blank data frame for the result
